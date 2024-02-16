@@ -9,6 +9,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 # header files locations
 include_directories(include)
 #executable to the project using the specified source files
-add_executable(GrandmaScheduler src/main.c src/scheduler.c src/ui.c)
+add_executable(GrandmaScheduler src/main.c src/scheduler.c src/ui.c src/utils.c src/time_management.c src/alerts.c)
+
 
 
