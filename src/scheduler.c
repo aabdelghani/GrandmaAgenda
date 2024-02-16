@@ -3,14 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct {
-    char time[6]; // HH:MM format
-    char description[256];
-    int done; // 0 for not done, 1 for done
-} Activity;
+
 
 Activity activities[10];
 int activityCount = 0;
+
 
 void addActivity(const char* time, const char* description) {
     // Validate time format before proceeding
@@ -39,7 +36,11 @@ void queryActivity(const char* time) {
 
     for (int i = 0; i < activityCount; i++) {
         if (strcmp(activities[i].time, time) == 0) {
-            printf("Activity at %s: %s\n", time, activities[i].description);
+            if (activities[i].done) {
+                printf("Chill, you already have %s.\n", activities[i].description);
+            } else {
+                printf("Activity at %s: %s\n", time, activities[i].description);
+            }
             return;
         }
     }

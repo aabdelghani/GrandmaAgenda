@@ -7,5 +7,15 @@ void markActivityDone(const char* time);
 void initializeScheduler();
 void displayActivities();
 
+typedef struct {
+    char time[6]; // HH:MM format
+    char description[256];
+    int done; // 0 for not done, 1 for done
+} Activity;
+
+extern Activity activities[10];
+extern int activityCount;
+
+
 #endif // SCHEDULER_H
 
