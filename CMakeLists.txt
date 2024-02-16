@@ -7,7 +7,9 @@ enable_testing()
 
 # Specify directories to search for header files
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/lib/Unity/src) # Add Unity include directory
+
+# Correct the path to Unity's include directory
+include_directories(${PROJECT_SOURCE_DIR}/lib/Unity/src)
 
 # Add an executable target named 'GrandmaScheduler' to the project
 add_executable(GrandmaScheduler
@@ -21,8 +23,11 @@ add_executable(GrandmaScheduler
 )
 
 # Add Unity test executable
-add_executable(test_scheduler tests/test_scheduler.c src/scheduler.c src/utils.c src/time_management.c src/alerts.c)
-target_link_libraries(test_scheduler ${PROJECT_SOURCE_DIR}/lib/Unity/src/unity.c) # Link Unity source file
+add_executable(test_scheduler tests/test_scheduler.c)
+# Include Unity's directory for the test_scheduler target specifically
+target_include_directories(test_scheduler PRIVATE ${PROJECT_SOURCE_DIR}/lib/Unity/src)
+# Adding Unity's source file to the test_scheduler target
+target_sources(test_scheduler PRIVATE ${PROJECT_SOURCE_DIR}/lib/Unity/src/unity.c src/scheduler.c src/utils.c src/time_management.c src/alerts.c)
 
 # Register the test with CTest
 add_test(NAME SchedulerTest COMMAND test_scheduler)
