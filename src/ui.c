@@ -9,7 +9,7 @@ void startUserInteractionLoop() {
     char command[256];
 	initializeTimeManagement(); // Initialize time management at the start
     initializeScheduler(); // Initialize or reset the scheduler
-	
+	system("clear");
     printf("Welcome to GrandmaScheduler!\n");
     while (1) {
         printf("\nCommands: add, query, mark, display, exit\n> ");

@@ -1,15 +1,26 @@
-cmake_minimum_required(VERSION 3.10)  # minimum version of CMake required
+cmake_minimum_required(VERSION 3.0.0)
+project(GrandmaScheduler VERSION 0.1.0 LANGUAGES C)
 
-project(GrandmaScheduler)           
+# Include the CTest module for enabling testing capabilities
+include(CTest)
+enable_testing()
 
-# Specify the C standard
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED True)
+# Specify directories to search for header files
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# header files locations
-include_directories(include)
-#executable to the project using the specified source files
-add_executable(GrandmaScheduler src/main.c src/scheduler.c src/ui.c src/utils.c src/time_management.c src/alerts.c)
+# Add an executable target named 'GrandmaScheduler' to the project
+add_executable(GrandmaScheduler
+    src/main.c
+    src/scheduler.c
+    src/ui.c
+    src/utils.c
+    src/time_management.c
+    src/alerts.c
+    # Add any other source files here
+)
 
-
+# Set the CPack variables for packaging/distribution
+set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+include(CPack)
 
