@@ -1,5 +1,5 @@
-#include "utils.h"
 #include "scheduler.h" // Assuming addActivity is declared here
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
