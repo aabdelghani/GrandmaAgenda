@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE
 #include "scheduler.h"
 #include "utils.h" // validateTimeFormat
 #include <stdio.h>
