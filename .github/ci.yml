@@ -1,0 +1,25 @@
+name: C CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup environment
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install CMake and GCC
+      run: sudo apt-get update && sudo apt-get install -y cmake gcc
+    - name: Build and Run Tests
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+        ./test_scheduler
+
