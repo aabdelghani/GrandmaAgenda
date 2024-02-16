@@ -28,12 +28,12 @@ GrandmaScheduler is a command-line scheduling application designed to assist ind
    cd GrandmaScheduler
 
 2. **Build the Project:**
-mkdir build && cd build
-cmake ..
-cmake --build .
+   ```bash
+   mkdir build && cd build
+   cmake ..
+   cmake --build .
 
 This compiles GrandmaScheduler and generates an executable in the build directory.
-
 
 ### 3.3 Running GrandmaScheduler
 
