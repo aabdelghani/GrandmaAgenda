@@ -1,25 +1,31 @@
-name: C CI
+name: C/C++ CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - testing
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup environment
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Install CMake and GCC
+    - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y cmake gcc
-    - name: Build and Run Tests
-      run: |
-        mkdir build
-        cd build
-        cmake ..
-        make
-        ./test_scheduler
+    - name: Create build directory
+      run: mkdir build && cd build
+    - name: Run CMake
+      run: cmake ..
+      working-directory: ./build
+    - name: Build project
+      run: cmake --build .
+      working-directory: ./build
+    - name: Run Unity tests
+      run: ./test_scheduler
+      working-directory: ./build
 

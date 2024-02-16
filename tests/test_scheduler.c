@@ -1,6 +1,9 @@
 #include "unity.h"
 #include "scheduler.h"
 
+void setUp(void) {}
+void tearDown(void) {}
+
 void test_function_addActivity(void) {
     // Call addActivity or other functions you want to test
     // Use Unity's TEST_ASSERT or other macros to check results
