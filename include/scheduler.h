@@ -1,14 +1,15 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-void addActivity(const char* time, const char* description);
+void addActivity(const char* startTime, const char* endTime, const char* description);
 void queryActivity(const char* time);
 void markActivityDone(const char* time);
 void initializeScheduler();
 void displayActivities();
-
+void addMinutesToTime(const char* time, int minutes, char* newTime);
 typedef struct {
-    char time[6]; // HH:MM format
+    char startTime[6]; // HH:MM format
+    char endTime[6]; // HH:MM format
     char description[256];
     int done; // 0 for not done, 1 for done
 } Activity;

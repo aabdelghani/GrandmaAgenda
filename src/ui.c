@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "utils.h"
 #include "scheduler.h"
 #include "time_management.h"
 #include <stdio.h>
@@ -21,7 +22,7 @@ char* descriptions[] = {
 };
 
 void startUserInteractionLoop() {
-    char command[256], response[256];
+    char command[7];
     int speed;
     initializeTimeManagement(); // Initialize time management at the start
     initializeScheduler(); // Initialize or reset the scheduler
@@ -33,30 +34,23 @@ void startUserInteractionLoop() {
         printf("\nCommands: add, display, run, exit\n> ");
         scanf("%s", command);
 
-        if (strcmp(command, "add") == 0) {
+		if (strcmp(command, "add") == 0) {
 			char option[10];
-			printf("Do you want to add activities manually or automatically? (manual/auto): ");
+			printf("Do you want to add activities (m)anually or (a)utomatically?");
 			scanf("%s", option);
-			if (strcmp(option, "manual") == 0) {
-				char time[6], description[256];
-				printf("Time (HH:MM): ");
-				scanf("%s", time);
+			if (strcmp(option, "m") == 0) {
+				char startTime[6], endTime[6], description[256];
+				printf("Start Time (HH:MM): ");
+				scanf("%s", startTime);
+				printf("End Time (HH:MM): ");
+				scanf("%s", endTime);
 				printf("Description: ");
 				scanf(" %[^\n]s", description); // Reads string with spaces
-				addActivity(time, description);
-			} else if (strcmp(option, "auto") == 0) {
-				int interval = 24 * 60 / 8; // Divide the day into 8 equal intervals
-				for (int i = 0; i < 8; i++) {
-				    char time[6];
-				    int hour = (i * interval) / 60;
-				    int minute = (i * interval) % 60;
-				    sprintf(time, "%02d:%02d", hour, minute);
-				    char* description = descriptions[rand() % (sizeof(descriptions) / sizeof(char*))];
-				    addActivity(time, description);
-				}
+				addActivity(startTime, endTime, description);
+			} else if (strcmp(option, "a") == 0) {
+				addAutomaticActivities(sizeof(descriptions) / sizeof(descriptions[0]));
 			}
-    	}
- 		else if (strcmp(command, "run") == 0) {
+		} else if (strcmp(command, "run") == 0) {
             break;
         }
          else if (strcmp(command, "display") == 0) {
@@ -79,6 +73,7 @@ void startUserInteractionLoop() {
 		printf("Scheduled Activities:\n");
 		displayActivities();
 
+
 		time_t now = getVirtualTime();
 		char currentTime[6];
 		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
@@ -86,13 +81,25 @@ void startUserInteractionLoop() {
 
 		// Check if an activity starts at the current time
 		for (int i = 0; i < activityCount; i++) {
-		    if (strcmp(activities[i].time, currentTime) == 0 && activities[i].done == 0) {
+		    if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
 		        printf("Activity just started: %s\n", activities[i].description);
 		        break;
 		    }
+		    else {
+		        int endHour, endMinute;
+		        sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
+		        int endTimeInMinutes = endHour * 60 + endMinute;
+		        int currentHour, currentMinute;
+		        sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
+		        int currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+		        if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+		            printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
+		            break;
+		        }
+        	}
 		}
 
-		// Check for user input during the 3-second interval
 		fd_set readfds;
 		struct timeval tv;
 		FD_ZERO(&readfds);
@@ -110,7 +117,7 @@ void startUserInteractionLoop() {
 		        markActivityDone(time);
 		    }
 		}
-	}
 
+	}	
 }
 
