@@ -4,6 +4,12 @@
 
 GrandmaScheduler is a command-line scheduling application designed to assist individuals with memory impairments by providing an interactive agenda for daily activities. It aims to improve the quality of life for users by reminding them of their scheduled tasks throughout the day.
 
+   ### 1.1 Flow Chart 
+   
+   ### 1.2 Sequence Diagram
+   - ![Sequence Diagram](/docs/markdown/SequenceDiagram.png)
+
+
 ## 2. Features
 
 1. **Interactive Schedule Query:** Users can input a specific time to see what activity is scheduled at that moment.
@@ -48,4 +54,5 @@ For more detailed information on how to use GrandmaScheduler, contribute to the 
 
 - [System Architecture Overview](/docs/markdown/ArchitectureOverview.md): A detailed explanation of the system architecture and design decisions.
 - [Flowchart Overview](/docs/markdown/FlowchartOverview.md): A visual representation of the application's logic flow.
+
 
