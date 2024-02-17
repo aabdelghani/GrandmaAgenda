@@ -51,6 +51,7 @@ void startUserInteractionLoop() {
 				addAutomaticActivities(sizeof(descriptions) / sizeof(descriptions[0]));
 			}
 		} else if (strcmp(command, "run") == 0) {
+				addAutomaticActivities(sizeof(descriptions) / sizeof(descriptions[0]));
             break;
         }
          else if (strcmp(command, "display") == 0) {
@@ -79,26 +80,33 @@ void startUserInteractionLoop() {
 		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
 		printf("\nCurrent time: %s\n", currentTime);
 
-		// Check if an activity starts at the current time
+		// Check if an activity starts at the current time or is currently running
 		for (int i = 0; i < activityCount; i++) {
-		    if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
-		        printf("Activity just started: %s\n", activities[i].description);
-		        break;
-		    }
-		    else {
-		        int endHour, endMinute;
-		        sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
-		        int endTimeInMinutes = endHour * 60 + endMinute;
-		        int currentHour, currentMinute;
-		        sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
-		        int currentTimeInMinutes = currentHour * 60 + currentMinute;
+			int startHour, startMinute, endHour, endMinute;
+			int currentHour, currentMinute;
+			sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
+			sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
+			sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
 
-		        if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
-		            printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
-		            break;
-		        }
-        	}
+			int startTimeInMinutes = startHour * 60 + startMinute;
+			int endTimeInMinutes = endHour * 60 + endMinute;
+			int currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+			if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
+				printf("Activity just started: %s\n", activities[i].description);
+				break;
+			}
+			else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+				printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
+				break;
+			}	
+			else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
+				// This new condition checks if the current time is between the start and end times of an activity
+				printf("Activity '%s' is currently running.\n", activities[i].description);
+				break;
+			}
 		}
+
 
 		fd_set readfds;
 		struct timeval tv;
@@ -108,15 +116,18 @@ void startUserInteractionLoop() {
 		tv.tv_usec = 0;
 
 		if (select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0) {
-		    char time[6], response[256];
-		    scanf("%s", time);
-		    queryActivity(time);
-		    printf("Are you doing it? (yes/no): ");
-		    scanf("%s", response);
-		    if (strcmp(response, "yes") == 0) {
-		        markActivityDone(time);
-		    }
+			char time[6], response[256];
+			scanf("%s", time);
+			int activityFound = queryActivity(time); // Capture the return value
+			if (activityFound) { // Only proceed if a valid activity was found
+				printf("Are you doing it? (yes/no): ");
+				scanf("%s", response);
+				if (strcmp(response, "yes") == 0) {
+				    markActivityDone(time);
+				}
+			}
 		}
+
 
 	}	
 }

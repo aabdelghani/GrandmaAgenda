@@ -41,29 +41,35 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
 
 
 
-void queryActivity(const char* time) {
+int queryActivity(const char* time) {
+    int found = 0;
     // Validate time format before proceeding
     if (!validateTimeFormat(time)) {
         printf("Invalid time format. Please use HH:MM format.\n");
-        return;
+        return found;
     }
     
     char timePlus30[6]; // To store time 30 minutes ahead
     addMinutesToTime(time, 30, timePlus30);
 
-    int found = 0;
-    for (int i = 0; i < activityCount; i++) {
-        if ((strcmp(activities[i].startTime, time) <= 0 && strcmp(activities[i].endTime, time) >= 0) ||
-            (strcmp(activities[i].startTime, time) >= 0 && strcmp(activities[i].startTime, timePlus30) <= 0)) {
-            printf("Activity from %s to %s: %s\n", activities[i].startTime, activities[i].endTime, activities[i].description);
-            found = 1;
-            break;
-        }
-    }
+
+	for (int i = 0; i < activityCount; i++) {
+			found = 1;
+		    if ((strcmp(activities[i].startTime, time) >= 0 && strcmp(activities[i].startTime, timePlus30) <= 0) || strcmp(activities[i].startTime, time) == 0) {
+		        if (activities[i].done) {
+		            printf("Chill, you already have %s.\n", activities[i].description);
+		        } else {
+		            printf("Activity from %s to %s: %s\n", activities[i].startTime, activities[i].endTime, activities[i].description);
+		        }
+		        return found;
+		   }
+	}
     
     if (!found) {
         printf("No activities found starting at %s or within the next 30 minutes.\n", time);
     }
+    return found; // Return the result of the search
+
 }
 
 
@@ -77,6 +83,7 @@ void addMinutesToTime(const char* time, int minutes, char* newTime) {
     strftime(newTime, 6, "%H:%M", &tmTime); // Format back to string
 }
 void markActivityDone(const char* time) {
+    int found = 0;
     // Validate time format before proceeding
     if (!validateTimeFormat(time)) {
         printf("Invalid time format. Please use HH:MM format.\n");
@@ -86,7 +93,7 @@ void markActivityDone(const char* time) {
     char timePlus30[6]; // To store time 30 minutes ahead
     addMinutesToTime(time, 30, timePlus30);
 
-    int found = 0;
+
     for (int i = 0; i < activityCount; i++) {
         // Check if the activity is ongoing or starts within the next 30 minutes
         if ((strcmp(activities[i].startTime, time) <= 0 && strcmp(activities[i].endTime, time) >= 0) ||

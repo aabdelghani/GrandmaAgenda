@@ -2,7 +2,7 @@
 #define SCHEDULER_H
 
 void addActivity(const char* startTime, const char* endTime, const char* description);
-void queryActivity(const char* time);
+int queryActivity(const char* time);
 void markActivityDone(const char* time);
 void initializeScheduler();
 void displayActivities();
