@@ -1,4 +1,4 @@
-# GrandmaScheduler
+# Grandma Interactive Agenda
 
 ## 1. Introduction
 
