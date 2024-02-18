@@ -9,23 +9,11 @@
 #include <sys/select.h> // for select()
 #include <unistd.h>
 
-char* descriptions[] = {
-    "Breakfast time",
-    "Morning exercise",
-    "Read a book",
-    "Lunch time",
-    "Take a nap",
-    "Go for a walk",
-    "Dinner time",
-    "Watch TV",
-    "Bedtime"
-};
+int manualActivitiesAdded = 0; // Flag to track if manual activities were added
 
 void startUserInteractionLoop() {
     char command[7];
     int speed;
-    initializeTimeManagement(); // Initialize time management at the start
-    initializeScheduler(); // Initialize or reset the scheduler
     system("clear");
     printf("Welcome to GrandmaScheduler!\n");
     printf("Please start by adding activities.\n");
@@ -39,6 +27,7 @@ void startUserInteractionLoop() {
 			printf("Do you want to add activities (m)anually or (a)utomatically?");
 			scanf("%s", option);
 			if (strcmp(option, "m") == 0) {
+				manualActivitiesAdded = 1; // Set flag when manual activities are added
 				char startTime[6], endTime[6], description[256];
 				printf("Start Time (HH:MM): ");
 				scanf("%s", startTime);
@@ -48,10 +37,12 @@ void startUserInteractionLoop() {
 				scanf(" %[^\n]s", description); // Reads string with spaces
 				addActivity(startTime, endTime, description);
 			} else if (strcmp(option, "a") == 0) {
-				addAutomaticActivities(sizeof(descriptions) / sizeof(descriptions[0]));
+				readActivitiesFromCSV();
 			}
 		} else if (strcmp(command, "run") == 0) {
-				addAutomaticActivities(sizeof(descriptions) / sizeof(descriptions[0]));
+			if (!manualActivitiesAdded) { // Only add automatic activities if no manual ones were added
+            	readActivitiesFromCSV();
+        	}
             break;
         }
          else if (strcmp(command, "display") == 0) {

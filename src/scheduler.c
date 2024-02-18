@@ -1,13 +1,14 @@
 #define _XOPEN_SOURCE
 #include "scheduler.h"
-#include "utils.h" // validateTimeFormat
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
+
 
 
 Activity activities[10];
 int activityCount = 0;
+
+void initializeScheduler() {
+    activityCount = 0; // Resets the scheduler
+}
 
 
 void addActivity(const char* startTime, const char* endTime, const char* description) {
@@ -21,11 +22,14 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
     int startHour, startMinute, endHour, endMinute;
     sscanf(startTime, "%d:%d", &startHour, &startMinute);
     sscanf(endTime, "%d:%d", &endHour, &endMinute);
-    int duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-    if (duration <= 0 || duration < 30) {
-        printf("Invalid time range. The end time must be at least 30 minutes after the start time.\n");
-        return;
+    int duration;
+    if (endHour < startHour || (endHour == startHour && endMinute < startMinute)) {
+        // If the end time is earlier than the start time, add 24 hours to the end time to handle the bedtime 
+        duration = ((endHour + 24) * 60 + endMinute) - (startHour * 60 + startMinute);
+    } else {
+        duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
     }
+
 
     if (activityCount < 10) {
         strcpy(activities[activityCount].startTime, startTime);
@@ -112,14 +116,17 @@ void markActivityDone(const char* time) {
     }
 }
 
-void initializeScheduler() {
-    activityCount = 0; // Resets the scheduler
-}
 
 void displayActivities() {
+    if (activityCount == 0) {
+        printf("No activities have been added yet!\n");
+        return; // Exit the function early since there's nothing to display
+    }
+
     printf("Scheduled Activities:\n");
     for (int i = 0; i < activityCount; i++) {
         printf("%s - %s - %s - %s\n", activities[i].startTime, activities[i].endTime, activities[i].description, activities[i].done ? "Done" : "Not Done");
     }
 }
+
 
