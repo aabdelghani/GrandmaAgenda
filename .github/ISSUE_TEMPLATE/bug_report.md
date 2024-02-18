@@ -7,32 +7,31 @@ assignees: ''
 
 ---
 
-# Bug Report Template
-
-## Title
+**Title**
 [Short description of the bug]
 
-## Description
+**Description**
 Please provide a clear and concise description of what the bug is.
 
-## Steps to Reproduce
+**Steps to Reproduce**
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
 
-## Expected Behavior
+**Expected Behavior**
 A clear and concise description of what you expected to happen.
 
-## Actual Behavior
+**Actual Behavior**
 A clear and concise description of what actually happened. Include any error messages or screenshots if possible.
 
-## Reproduces How Often
+**Reproduces How Often**
 [What percentage of the time does it reproduce?]
 
-## Versions
+**Versions**
 - Software Version:
 - Operating System:
+- Any other relevant version information (e.g., Browser version, Node.js version).
 
-## Additional Context
+**Additional Context**
 Add any other context about the problem here. This might include the conditions under which the bug occurs, links to related issues, or any other information that could be helpful in diagnosing and fixing the issue.
