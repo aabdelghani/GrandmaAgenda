@@ -57,69 +57,66 @@ void startUserInteractionLoop() {
     printf("Enter the speed factor for the program: ");
     scanf("%d", &speed);
     setSpeedFactor(speed);
-
-    while (1) {
-		system("clear"); // Clear the screen
-
-		// Display the activities at the top
-		printf("Scheduled Activities:\n");
-		displayActivities();
-
-
-		time_t now = getVirtualTime();
-		char currentTime[6];
-		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
-		printf("\nCurrent time: %s\n", currentTime);
-
-		// Check if an activity starts at the current time or is currently running
-		for (int i = 0; i < activityCount; i++) {
-			int startHour, startMinute, endHour, endMinute;
-			int currentHour, currentMinute;
-			sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
-			sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
-			sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
-
-			int startTimeInMinutes = startHour * 60 + startMinute;
-			int endTimeInMinutes = endHour * 60 + endMinute;
-			int currentTimeInMinutes = currentHour * 60 + currentMinute;
-
-			if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
-				printf("Activity just started: %s\n", activities[i].description);
-				break;
-			}
-			else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
-				printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
-				break;
-			}	
-			else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
-				// This new condition checks if the current time is between the start and end times of an activity
-				printf("Activity '%s' is currently running.\n", activities[i].description);
-				break;
-			}
-		}
-
-
-		fd_set readfds;
-		struct timeval tv;
-		FD_ZERO(&readfds);
-		FD_SET(STDIN_FILENO, &readfds);
-		tv.tv_sec = 3;
-		tv.tv_usec = 0;
-
-		if (select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0) {
-			char time[6], response[256];
-			scanf("%s", time);
-			int activityFound = queryActivity(time); // Capture the return value
-			if (activityFound) { // Only proceed if a valid activity was found
-				printf("Are you doing it? (yes/no): ");
-				scanf("%s", response);
-				if (strcmp(response, "yes") == 0) {
-				    markActivityDone(time);
-				}
-			}
-		}
-
-
-	}	
 }
 
+void* displayActivitiesLoop(void* arg) {
+	while(1){
+	system("clear");
+	printf("Scheduled Activities:\n");
+	displayActivities();
+
+	time_t now = getVirtualTime();
+	char currentTime[6];
+	strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
+	printf("\nCurrent time: %s\n", currentTime);
+
+	for (int i = 0; i < activityCount; i++) {
+		int startHour, startMinute, endHour, endMinute;
+		int currentHour, currentMinute;
+		sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
+		sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
+		sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
+
+		int startTimeInMinutes = startHour * 60 + startMinute;
+		int endTimeInMinutes = endHour * 60 + endMinute;
+		int currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+		if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
+			printf("Activity just started: %s\n", activities[i].description);
+			break;
+		}
+		else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+			printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
+			break;
+		}	
+		else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
+			// This new condition checks if the current time is between the start and end times of an activity
+			printf("Activity '%s' is currently running.\n", activities[i].description);
+			break;
+		}
+	}
+	sleep(1); // Sleep to reduce CPU usage
+	}
+    return NULL;
+}
+void* userInputLoop(void* arg) {
+    while (1) {
+        char time[6], response[256];
+
+        // Waiting for user input
+        printf("Enter time (HH:MM) or 'exit' to quit: ");
+        if (scanf("%5s", time) > 0) {
+            if (strcmp(time, "exit") == 0) break; // Exit loop if user types 'exit'
+
+            int activityFound = queryActivity(time);
+            if (activityFound) {
+                printf("Are you doing it? (yes/no): ");
+                scanf("%255s", response);
+                if (strcmp(response, "yes") == 0) {
+                    markActivityDone(time);
+                }
+            }
+        }
+    }
+    return NULL;
+}

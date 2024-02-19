@@ -1,17 +1,15 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
-#include "utils.h" // validateTimeFormat
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <time_management.h>
+#include <pthread.h>
+#include "utils.h" // validateTimeFormat
 
-void addActivity(const char* startTime, const char* endTime, const char* description);
-int queryActivity(const char* time);
-void markActivityDone(const char* time);
-void initializeScheduler();
-void displayActivities();
-void addMinutesToTime(const char* time, int minutes, char* newTime);
+
+extern pthread_mutex_t activities_mutex;
+
 
 typedef struct {
     char startTime[6]; // HH:MM format
@@ -22,6 +20,16 @@ typedef struct {
 
 extern Activity activities[10];
 extern int activityCount;
+
+void addActivity(const char* startTime, const char* endTime, const char* description);
+int queryActivity(const char* time);
+void markActivityDone(const char* time);
+void initializeScheduler();
+void displayActivities();
+void addMinutesToTime(const char* time, int minutes, char* newTime);
+
+
+
 
 
 #endif // SCHEDULER_H
