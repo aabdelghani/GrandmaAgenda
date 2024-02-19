@@ -8,9 +8,6 @@
 #include "utils.h" // validateTimeFormat
 
 
-extern pthread_mutex_t activities_mutex;
-
-
 typedef struct {
     char startTime[6]; // HH:MM format
     char endTime[6]; // HH:MM format

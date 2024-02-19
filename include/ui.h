@@ -3,6 +3,9 @@
 #include <pthread.h>
 #include <stdio.h>
 
+
+
+
 void startUserInteractionLoop();
 void* displayActivitiesLoop(void* arg);
 void* userInputLoop(void* arg);

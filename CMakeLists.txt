@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
+project(GrandmaScheduler C)
 
-project(GrandmaScheduler VERSION 0.1.0 LANGUAGES C)
+set(CMAKE_C_STANDARD 99)
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Specify directories to search for header files
 include_directories(${PROJECT_SOURCE_DIR}/include)
-
+find_package(Threads REQUIRED)
 # Add an executable target named 'GrandmaScheduler' to the project
 add_executable(GrandmaScheduler
     src/main.c
@@ -16,8 +19,4 @@ add_executable(GrandmaScheduler
     # Add any other source files here
 )
 
-# Set the CPack variables for packaging/distribution
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
-
+target_link_libraries(GrandmaScheduler PRIVATE Threads::Threads)

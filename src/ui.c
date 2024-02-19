@@ -10,6 +10,8 @@
 #include <unistd.h>
 
 int manualActivitiesAdded = 0; // Flag to track if manual activities were added
+volatile int isInputMode = 0;
+pthread_mutex_t inputModeMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void startUserInteractionLoop() {
     char command[7];
@@ -61,53 +63,55 @@ void startUserInteractionLoop() {
 
 void* displayActivitiesLoop(void* arg) {
 	while(1){
-	system("clear");
-	printf("Scheduled Activities:\n");
-	displayActivities();
+        
+		system("clear");
+		printf("Scheduled Activities:\n");
+		displayActivities();
 
-	time_t now = getVirtualTime();
-	char currentTime[6];
-	strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
-	printf("\nCurrent time: %s\n", currentTime);
+		time_t now = getVirtualTime();
+		char currentTime[6];
+		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
+		printf("\nCurrent time: %s\n", currentTime);
+		
 
-	for (int i = 0; i < activityCount; i++) {
-		int startHour, startMinute, endHour, endMinute;
-		int currentHour, currentMinute;
-		sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
-		sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
-		sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
+		for (int i = 0; i < activityCount; i++) {
+			int startHour, startMinute, endHour, endMinute;
+			int currentHour, currentMinute;
+			sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
+			sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
+			sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
 
-		int startTimeInMinutes = startHour * 60 + startMinute;
-		int endTimeInMinutes = endHour * 60 + endMinute;
-		int currentTimeInMinutes = currentHour * 60 + currentMinute;
+			int startTimeInMinutes = startHour * 60 + startMinute;
+			int endTimeInMinutes = endHour * 60 + endMinute;
+			int currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-		if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
-			printf("Activity just started: %s\n", activities[i].description);
-			break;
+			if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
+				printf("Activity just started: %s\n", activities[i].description);
+
+				break;
+			}
+			else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+				printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
+				break;
+			}	
+			else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
+				// This new condition checks if the current time is between the start and end times of an activity
+				printf("Activity '%s' is currently running.\n", activities[i].description);
+
+				break;
+			}
 		}
-		else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
-			printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
-			break;
-		}	
-		else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
-			// This new condition checks if the current time is between the start and end times of an activity
-			printf("Activity '%s' is currently running.\n", activities[i].description);
-			break;
-		}
+		sleep(1);
 	}
-	sleep(1); // Sleep to reduce CPU usage
-	}
+
     return NULL;
 }
 void* userInputLoop(void* arg) {
     while (1) {
         char time[6], response[256];
-
-        // Waiting for user input
         printf("Enter time (HH:MM) or 'exit' to quit: ");
         if (scanf("%5s", time) > 0) {
-            if (strcmp(time, "exit") == 0) break; // Exit loop if user types 'exit'
-
+            if (strcmp(time, "exit") == 0) exit(EXIT_SUCCESS);
             int activityFound = queryActivity(time);
             if (activityFound) {
                 printf("Are you doing it? (yes/no): ");
@@ -117,6 +121,7 @@ void* userInputLoop(void* arg) {
                 }
             }
         }
+        sleep(3); // Sleep to reduce CPU usage
     }
     return NULL;
 }

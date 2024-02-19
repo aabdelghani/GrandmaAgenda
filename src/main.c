@@ -2,6 +2,7 @@
 #include "ui.h"
 
 int main() {
+
     startUserInteractionLoop();
     pthread_t displayThread, inputThread;
 
@@ -21,5 +22,6 @@ int main() {
     pthread_join(displayThread, NULL);
     pthread_join(inputThread, NULL);
 
+ 
     return 0;
 }

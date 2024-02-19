@@ -1,12 +1,14 @@
 #define _XOPEN_SOURCE
 #include "scheduler.h"
+#include <ui.h>
 
 
 
 Activity activities[10];
 int activityCount = 0;
 
-pthread_mutex_t activities_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
 
 void initializeScheduler() {
     activityCount = 0; // Resets the scheduler
@@ -14,8 +16,6 @@ void initializeScheduler() {
 
 
 void addActivity(const char* startTime, const char* endTime, const char* description) {
-    pthread_mutex_lock(&activities_mutex);
-
     // Validate time format before proceeding
     if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
         printf("Invalid time format. Please use HH:MM format.\n");
@@ -27,10 +27,10 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
     sscanf(startTime, "%d:%d", &startHour, &startMinute);
     sscanf(endTime, "%d:%d", &endHour, &endMinute);
     int duration;
-    if (endHour < startHour || (endHour == startHour && endMinute < startMinute)) {
+    /*if (endHour < startHour || (endHour == startHour && endMinute < startMinute)) {
         // If the end time is earlier than the start time, add 24 hours to the end time to handle the bedtime 
         duration = ((endHour + 24) * 60 + endMinute) - (startHour * 60 + startMinute);
-    } else {
+    } else */{
         duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
     }
 
@@ -45,15 +45,12 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
     } else {
         printf("Maximum number of activities reached.\n");
     }
-    pthread_mutex_unlock(&activities_mutex);
 
 }
 
-
-
 int queryActivity(const char* time) {
 
-    pthread_mutex_lock(&activities_mutex);
+    //pthread_mutex_lock(&queryActivity_mutex);
 
     int found = 0;
     // Validate time format before proceeding
@@ -81,11 +78,10 @@ int queryActivity(const char* time) {
     if (!found) {
         printf("No activities found starting at %s or within the next 30 minutes.\n", time);
     }
-    pthread_mutex_unlock(&activities_mutex);
+    //pthread_mutex_unlock(&queryActivity_mutex);
     return found; // Return the result of the search
 
 }
-
 
 // Implementation of addMinutesToTime function
 void addMinutesToTime(const char* time, int minutes, char* newTime) {
@@ -96,8 +92,9 @@ void addMinutesToTime(const char* time, int minutes, char* newTime) {
     
     strftime(newTime, 6, "%H:%M", &tmTime); // Format back to string
 }
+
 void markActivityDone(const char* time) {
-    pthread_mutex_lock(&activities_mutex);
+    //pthread_mutex_lock(&markActivityDone_mutex);
     int found = 0;
     // Validate time format before proceeding
     if (!validateTimeFormat(time)) {
@@ -125,13 +122,11 @@ void markActivityDone(const char* time) {
     if (!found) {
         printf("No activities found starting at %s or within the next 30 minutes to mark as done.\n", time);
     }
-    pthread_mutex_unlock(&activities_mutex);
+    //pthread_mutex_unlock(&markActivityDone_mutex);
 
 }
 
-
 void displayActivities() {
-    pthread_mutex_lock(&activities_mutex);
 
     if (activityCount == 0) {
         printf("No activities have been added yet!\n");
@@ -142,7 +137,6 @@ void displayActivities() {
     for (int i = 0; i < activityCount; i++) {
         printf("%s - %s - %s - %s\n", activities[i].startTime, activities[i].endTime, activities[i].description, activities[i].done ? "Done" : "Not Done");
     }
-    pthread_mutex_unlock(&activities_mutex);
 
 }
 
