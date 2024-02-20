@@ -8,12 +8,9 @@ Activity activities[10];
 int activityCount = 0;
 
 
-
-
 void initializeScheduler() {
     activityCount = 0; // Resets the scheduler
 }
-
 
 void addActivity(const char* startTime, const char* endTime, const char* description) {
     // Validate time format before proceeding

@@ -63,16 +63,16 @@ void startUserInteractionLoop() {
 
 void* displayActivitiesLoop(void* arg) {
 	while(1){
-        
-		system("clear");
-		printf("Scheduled Activities:\n");
-		displayActivities();
-
+        //
+		//system("clear");
+		//printf("Scheduled Activities:\n");
+		//displayActivities();
+		//
+		pthread_mutex_lock(&inputModeMutex);
 		time_t now = getVirtualTime();
 		char currentTime[6];
 		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
 		printf("\nCurrent time: %s\n", currentTime);
-		
 
 		for (int i = 0; i < activityCount; i++) {
 			int startHour, startMinute, endHour, endMinute;
@@ -101,6 +101,7 @@ void* displayActivitiesLoop(void* arg) {
 				break;
 			}
 		}
+		pthread_mutex_unlock(&inputModeMutex);
 		sleep(1);
 	}
 
@@ -109,19 +110,29 @@ void* displayActivitiesLoop(void* arg) {
 void* userInputLoop(void* arg) {
     while (1) {
         char time[6], response[256];
+
+		pthread_mutex_lock(&inputModeMutex);
         printf("Enter time (HH:MM) or 'exit' to quit: ");
+		fflush(stdout);
         if (scanf("%5s", time) > 0) {
             if (strcmp(time, "exit") == 0) exit(EXIT_SUCCESS);
             int activityFound = queryActivity(time);
-            if (activityFound) {
+
+            while (activityFound) {
                 printf("Are you doing it? (yes/no): ");
                 scanf("%255s", response);
                 if (strcmp(response, "yes") == 0) {
                     markActivityDone(time);
+					break;
                 }
             }
-        }
-        sleep(3); // Sleep to reduce CPU usage
+			pthread_mutex_unlock(&inputModeMutex);
+
+			sleep(1);
+        }else {
+			pthread_mutex_unlock(&inputModeMutex); // Ensure to unlock if no input is taken
+		}
+
     }
     return NULL;
 }
