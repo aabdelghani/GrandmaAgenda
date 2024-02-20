@@ -5,7 +5,7 @@
 
 
 
-
+void clearSection(int startLine, int endLine);
 void startUserInteractionLoop();
 void* displayActivitiesLoop(void* arg);
 void* userInputLoop(void* arg);

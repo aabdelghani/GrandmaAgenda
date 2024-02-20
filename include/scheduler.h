@@ -18,8 +18,9 @@ typedef struct {
 extern Activity activities[10];
 extern int activityCount;
 
-void addActivity(const char* startTime, const char* endTime, const char* description);
 int queryActivity(const char* time);
+int checkActivityStatus(int activityIndex);
+void addActivity(const char* startTime, const char* endTime, const char* description);
 void markActivityDone(const char* time);
 void initializeScheduler();
 void displayActivities();

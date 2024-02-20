@@ -13,6 +13,23 @@ int manualActivitiesAdded = 0; // Flag to track if manual activities were added
 volatile int isInputMode = 0;
 pthread_mutex_t inputModeMutex = PTHREAD_MUTEX_INITIALIZER;
 
+
+void clearSection(int startLine, int endLine) {
+    // Move cursor to the start of the section
+    printf("\033[%d;1H", startLine); // Move cursor to startLine, column 1
+
+    // Clear each line
+    for (int i = startLine; i <= endLine; i++) {
+        printf("\033[2K"); // Clear the entire line
+        if (i < endLine) {
+            printf("\033[1B"); // Move cursor down one line
+        }
+    }
+
+    // Optionally, move cursor back to the start of the section or to a new desired position
+    printf("\033[%d;1H", startLine); // Position cursor at the beginning of cleared section
+}
+
 void startUserInteractionLoop() {
     char command[7];
     int speed;
@@ -63,11 +80,11 @@ void startUserInteractionLoop() {
 
 void* displayActivitiesLoop(void* arg) {
 	while(1){
-        //
-		//system("clear");
-		//printf("Scheduled Activities:\n");
-		//displayActivities();
-		//
+        
+    	clearSection(1, 13);
+		printf("Scheduled Activities:\n");
+		displayActivities();
+
 		pthread_mutex_lock(&inputModeMutex);
 		time_t now = getVirtualTime();
 		char currentTime[6];
@@ -107,32 +124,49 @@ void* displayActivitiesLoop(void* arg) {
 
     return NULL;
 }
+
 void* userInputLoop(void* arg) {
     while (1) {
         char time[6], response[256];
 
-		pthread_mutex_lock(&inputModeMutex);
+        pthread_mutex_lock(&inputModeMutex);
         printf("Enter time (HH:MM) or 'exit' to quit: ");
-		fflush(stdout);
+        fflush(stdout);
         if (scanf("%5s", time) > 0) {
-            if (strcmp(time, "exit") == 0) exit(EXIT_SUCCESS);
-            int activityFound = queryActivity(time);
-
-            while (activityFound) {
-                printf("Are you doing it? (yes/no): ");
-                scanf("%255s", response);
-                if (strcmp(response, "yes") == 0) {
-                    markActivityDone(time);
-					break;
-                }
+            if (strcmp(time, "exit") == 0) {
+                pthread_mutex_unlock(&inputModeMutex);
+                exit(EXIT_SUCCESS);
             }
-			pthread_mutex_unlock(&inputModeMutex);
+            // Use queryActivity to find the activity index
+            int activityIndex = queryActivity(time);
+            if (activityIndex == -1) {
+                // If no activity is found, continue to the next iteration
+                pthread_mutex_unlock(&inputModeMutex);
+                continue;
+            }
 
-			sleep(1);
-        }else {
-			pthread_mutex_unlock(&inputModeMutex); // Ensure to unlock if no input is taken
-		}
+            int activityStatus = checkActivityStatus(activityIndex);
 
+            if (activityStatus) {
+                printf("Chill, you already have %s.\n", activities[activityIndex].description);
+            } else {
+                // Ask if the user is doing it until they say "yes" or "no"
+                do {
+                    printf("Are you doing it? (yes/no): ");
+                    fflush(stdout);
+                    scanf("%255s", response);
+                    if (strcmp(response, "yes") == 0) {
+                        markActivityDone(time);
+                        break; // Exit the loop once the activity is marked as done
+                    }
+                } while (strcmp(response, "no") != 0); // Continue asking if the response is not "no"
+            }
+
+            pthread_mutex_unlock(&inputModeMutex);
+            sleep(3); // Wait a bit before the next prompt, adjust as needed
+        } else {
+            pthread_mutex_unlock(&inputModeMutex); // Ensure to unlock if no input is taken
+        }
     }
     return NULL;
 }

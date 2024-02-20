@@ -19,19 +19,6 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
         return; // Do not add the activity if the time format is invalid
     }
 
-    // Validate that the start time is before the end time and the duration is at least 30 minutes
-    int startHour, startMinute, endHour, endMinute;
-    sscanf(startTime, "%d:%d", &startHour, &startMinute);
-    sscanf(endTime, "%d:%d", &endHour, &endMinute);
-    int duration;
-    /*if (endHour < startHour || (endHour == startHour && endMinute < startMinute)) {
-        // If the end time is earlier than the start time, add 24 hours to the end time to handle the bedtime 
-        duration = ((endHour + 24) * 60 + endMinute) - (startHour * 60 + startMinute);
-    } else */{
-        duration = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-    }
-
-
     if (activityCount < 10) {
         strcpy(activities[activityCount].startTime, startTime);
         strcpy(activities[activityCount].endTime, endTime);
@@ -46,38 +33,47 @@ void addActivity(const char* startTime, const char* endTime, const char* descrip
 }
 
 int queryActivity(const char* time) {
-
-    //pthread_mutex_lock(&queryActivity_mutex);
-
-    int found = 0;
-    // Validate time format before proceeding
     if (!validateTimeFormat(time)) {
         printf("Invalid time format. Please use HH:MM format.\n");
-        return found;
+        return -1;
+    }
+
+    int userHour, userMinute;
+    sscanf(time, "%d:%d", &userHour, &userMinute);
+    int userTimeInMinutes = userHour * 60 + userMinute;
+
+    for (int i = 0; i < activityCount; i++) {
+        int startHour, startMinute, endHour, endMinute;
+        sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
+        sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
+        
+        int startTimeInMinutes = startHour * 60 + startMinute;
+        int endTimeInMinutes = endHour * 60 + endMinute;
+
+        // Adjust for activities that end after midnight
+        if (endTimeInMinutes < startTimeInMinutes) {
+            endTimeInMinutes += 24 * 60;
+        }
+
+        if (userTimeInMinutes >= startTimeInMinutes && userTimeInMinutes <= endTimeInMinutes) {
+            printf("Activity from %s to %s: %s\n", activities[i].startTime, activities[i].endTime, activities[i].description);
+            return i; // Return the index of the found activity
+        }
+    }
+
+    printf("No activities found that include the time %s.\n", time);
+    return -1; // Indicate that no matching activity was found
+}
+
+
+
+int checkActivityStatus(int activityIndex) {
+    if (activityIndex < 0 || activityIndex >= activityCount) {
+        return -1; // Indicate wrong acitivty index
     }
     
-    char timePlus30[6]; // To store time 30 minutes ahead
-    addMinutesToTime(time, 30, timePlus30);
-
-
-	for (int i = 0; i < activityCount; i++) {
-			found = 1;
-		    if ((strcmp(activities[i].startTime, time) >= 0 && strcmp(activities[i].startTime, timePlus30) <= 0) || strcmp(activities[i].startTime, time) == 0) {
-		        if (activities[i].done) {
-		            printf("Chill, you already have %s.\n", activities[i].description);
-		        } else {
-		            printf("Activity from %s to %s: %s\n", activities[i].startTime, activities[i].endTime, activities[i].description);
-		        }
-		        return found;
-		   }
-	}
-    
-    if (!found) {
-        printf("No activities found starting at %s or within the next 30 minutes.\n", time);
-    }
-    //pthread_mutex_unlock(&queryActivity_mutex);
-    return found; // Return the result of the search
-
+    Activity activity = activities[activityIndex];
+    return activity.done ? 1 : 0; // Returns 1 if done, 0 if not done.
 }
 
 // Implementation of addMinutesToTime function
@@ -91,7 +87,6 @@ void addMinutesToTime(const char* time, int minutes, char* newTime) {
 }
 
 void markActivityDone(const char* time) {
-    //pthread_mutex_lock(&markActivityDone_mutex);
     int found = 0;
     // Validate time format before proceeding
     if (!validateTimeFormat(time)) {
@@ -119,8 +114,6 @@ void markActivityDone(const char* time) {
     if (!found) {
         printf("No activities found starting at %s or within the next 30 minutes to mark as done.\n", time);
     }
-    //pthread_mutex_unlock(&markActivityDone_mutex);
-
 }
 
 void displayActivities() {
