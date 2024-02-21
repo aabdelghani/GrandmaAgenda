@@ -157,66 +157,64 @@ void* userInputLoop(void* arg) {
 		//printf("\033[14;1H");
 		fflush(stdout);
 
-        if(inputAvailable()){
-            if (scanf("%5s", time) > 0) {
-                if (strcmp(time, "exit") == 0) {
-                    exit(EXIT_SUCCESS);
-                } else if (strcmp(time, "now") == 0) {
-                    // Use getVirtualTime to get the current time
-                    time_t now = getVirtualTime();
-                    // Format the virtual current time in "HH:MM" format
-                    strftime(time, sizeof(time), "%H:%M", localtime(&now));
-                    
-                }
-                // Use queryActivity to find the activity index
-                int activityIndex = queryActivity(time);
-                if (activityIndex == -1) {
-                    // If no activity is found, continue to the next iteration
-                    pthread_mutex_unlock(&printMutex);
-                    continue;
-                }
+        if (scanf("%5s", time) > 0) {
+            if (strcmp(time, "exit") == 0) {
+                exit(EXIT_SUCCESS);
+            } else if (strcmp(time, "now") == 0) {
+                // Use getVirtualTime to get the current time
+                time_t now = getVirtualTime();
+                // Format the virtual current time in "HH:MM" format
+                strftime(time, sizeof(time), "%H:%M", localtime(&now));
+                
+            }
+            // Use queryActivity to find the activity index
+            int activityIndex = queryActivity(time);
+            if (activityIndex == -1) {
+                // If no activity is found, continue to the next iteration
+                pthread_mutex_unlock(&printMutex);
+                continue;
+            }
 
-                int activityStatus = checkActivityStatus(activityIndex);
+            int activityStatus = checkActivityStatus(activityIndex);
 
-                    if (activityStatus) {
-                        printf("Chill, you already have %s.\n", activities[activityIndex].description);
-                    } else {
-                        // New loop with timeout for "Are you doing it?" question
-                        int gotResponse = 0;
-                        while (!gotResponse && attempts < maxAttempts) {
-                            printf("Are you doing it? (yes/no): ");
-                            fflush(stdout);
+                if (activityStatus) {
+                    printf("Chill, you already have %s.\n", activities[activityIndex].description);
+                } else {
+                    // New loop with timeout for "Are you doing it?" question
+                    int gotResponse = 0;
+                    while (!gotResponse && attempts < maxAttempts) {
+                        printf("Are you doing it? (yes/no): ");
+                        fflush(stdout);
 
-                            if (inputAvailable()) { // Check for input with timeout
-                                if (scanf("%255s", response) > 0) {
-                                    gotResponse = 1; // Mark that we got a response
-                                    if (strcmp(response, "yes") == 0) {
-                                        markActivityDone(time);
-                                        break; // Exit the loop once the activity is marked as done
-                                    } else if (strcmp(response, "no") == 0) {
-                                        break; // Exit the loop if the user explicitly says "no"
-                                    } else {
-                                        // If the response is neither "yes" nor "no", reset gotResponse to ask again
-                                        gotResponse = 0;
-                                    }
+                        if (inputAvailable()) { // Check for input with timeout
+                            if (scanf("%255s", response) > 0) {
+                                gotResponse = 1; // Mark that we got a response
+                                if (strcmp(response, "yes") == 0) {
+                                    markActivityDone(time);
+                                    break; // Exit the loop once the activity is marked as done
+                                } else if (strcmp(response, "no") == 0) {
+                                    break; // Exit the loop if the user explicitly says "no"
+                                } else {
+                                    // If the response is neither "yes" nor "no", reset gotResponse to ask again
+                                    gotResponse = 0;
                                 }
-                            } else {
-                                attempts++;
-                                if (attempts < maxAttempts) {
-                                    printf("\nWaiting for response... Attempt %d of %d\n", attempts, maxAttempts);
-                                    //sleep(3); // Wait for 3 seconds before asking again
-                                }
+                            }
+                        } else {
+                            attempts++;
+                            if (attempts < maxAttempts) {
+                                printf("\nWaiting for response... Attempt %d of %d\n", attempts, maxAttempts);
+                                //sleep(3); // Wait for 3 seconds before asking again
                             }
                         }
                     }
-                pthread_mutex_unlock(&printMutex);
-            } else {
-                pthread_mutex_unlock(&printMutex);
-            }
+                }
+            pthread_mutex_unlock(&printMutex);
+        } else {
+            pthread_mutex_unlock(&printMutex);
         }
-        pthread_mutex_unlock(&printMutex);
+    pthread_mutex_unlock(&printMutex);
 
-        sleep(3);
+    sleep(3);
     }
     return NULL;
 }
