@@ -10,10 +10,12 @@ void initializeTimeManagement(void) {
 time_t getVirtualTime() {
     time_t currentTime = time(NULL);
     double realTimeElapsed = difftime(currentTime, programStartTime);
+    // Apply the factor to the elapsed time
     double virtualTimeElapsed = realTimeElapsed * speedFactor;
     
     return programStartTime + (time_t)virtualTimeElapsed;
 }
+
 
 void setSpeedFactor(int factor) {
     speedFactor = factor;

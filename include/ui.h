@@ -2,7 +2,8 @@
 #define UI_H
 #include <pthread.h>
 #include <stdio.h>
-
+#include "time_management.h"
+#include "scheduler.h"
 
 
 void clearSection(int startLine, int endLine);

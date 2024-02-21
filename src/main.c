@@ -2,7 +2,8 @@
 #include "ui.h"
 
 int main() {
-
+    initializeTimeManagement();
+    initializeScheduler();
     startUserInteractionLoop();
     pthread_t displayThread, inputThread;
 
