@@ -36,3 +36,16 @@ void readActivitiesFromCSV() {
 }
 
 
+
+void parseAndConvertTime(const char* startTimeStr, const char* endTimeStr, const char* currentTimeStr,
+                         int* startTimeInMinutes, int* endTimeInMinutes, int* currentTimeInMinutes) {
+    int startHour, startMinute, endHour, endMinute, currentHour, currentMinute;
+
+    sscanf(startTimeStr, "%d:%d", &startHour, &startMinute);
+    sscanf(endTimeStr, "%d:%d", &endHour, &endMinute);
+    sscanf(currentTimeStr, "%d:%d", &currentHour, &currentMinute);
+
+    *startTimeInMinutes = startHour * 60 + startMinute;
+    *endTimeInMinutes = endHour * 60 + endMinute;
+    *currentTimeInMinutes = currentHour * 60 + currentMinute;
+}

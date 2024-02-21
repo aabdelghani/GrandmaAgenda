@@ -116,37 +116,28 @@ void* displayActivitiesLoop(void* arg) {
         pthread_cond_signal(&canPrintCond);
 		pthread_mutex_unlock(&printMutex);
 
-		//pthread_mutex_lock(&inputModeMutex);
-		for (int i = 0; i < activityCount; i++) {
-			int startHour, startMinute, endHour, endMinute;
-			int currentHour, currentMinute;
-			sscanf(activities[i].startTime, "%d:%d", &startHour, &startMinute);
-			sscanf(activities[i].endTime, "%d:%d", &endHour, &endMinute);
-			sscanf(currentTime, "%d:%d", &currentHour, &currentMinute);
+        for (int i = 0; i < activityCount; i++) {
+            int startTimeInMinutes, endTimeInMinutes, currentTimeInMinutes;
 
-			int startTimeInMinutes = startHour * 60 + startMinute;
-			int endTimeInMinutes = endHour * 60 + endMinute;
-			int currentTimeInMinutes = currentHour * 60 + currentMinute;
+            // Use the new function to parse times and convert them to minutes
+            parseAndConvertTime(activities[i].startTime, activities[i].endTime, currentTime,
+                                &startTimeInMinutes, &endTimeInMinutes, &currentTimeInMinutes);
 
-			if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
-				printf("Activity just started: %s\n", activities[i].description);
+            if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
+                printf("Activity just started: %s\n", activities[i].description);
+                break;
+            }
+            else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+                printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
+                break;
+            }   
+            else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
+                printf("Activity '%s' is currently running.\n", activities[i].description);
+                break;
+            }
+        }
 
-				break;
-			}
-			else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
-				printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
-				break;
-			}	
-			else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
-				// This new condition checks if the current time is between the start and end times of an activity
-				printf("Activity '%s' is currently running.\n", activities[i].description);
-
-				break;
-			}
-		}
-
-		//pthread_mutex_unlock(&inputModeMutex);
-		sleep(3);
+		sleep(1);
 	}
 
     return NULL;
@@ -170,6 +161,12 @@ void* userInputLoop(void* arg) {
             if (scanf("%5s", time) > 0) {
                 if (strcmp(time, "exit") == 0) {
                     exit(EXIT_SUCCESS);
+                } else if (strcmp(time, "now") == 0) {
+                    // Use getVirtualTime to get the current time
+                    time_t now = getVirtualTime();
+                    // Format the virtual current time in "HH:MM" format
+                    strftime(time, sizeof(time), "%H:%M", localtime(&now));
+                    
                 }
                 // Use queryActivity to find the activity index
                 int activityIndex = queryActivity(time);
@@ -207,7 +204,7 @@ void* userInputLoop(void* arg) {
                                 attempts++;
                                 if (attempts < maxAttempts) {
                                     printf("\nWaiting for response... Attempt %d of %d\n", attempts, maxAttempts);
-                                    sleep(3); // Wait for 3 seconds before asking again
+                                    //sleep(3); // Wait for 3 seconds before asking again
                                 }
                             }
                         }

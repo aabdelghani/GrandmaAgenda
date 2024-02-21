@@ -10,6 +10,8 @@
 
 
 void readActivitiesFromCSV();
+void parseAndConvertTime(const char* startTimeStr, const char* endTimeStr, const char* currentTimeStr,
+                         int* startTimeInMinutes, int* endTimeInMinutes, int* currentTimeInMinutes);
 
 #endif // UTILS_H
 
