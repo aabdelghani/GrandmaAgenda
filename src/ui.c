@@ -102,19 +102,18 @@ void startUserInteractionLoop() {
 }
 
 void* displayActivitiesLoop(void* arg) {
-	while(1){
-        
-		pthread_mutex_lock(&printMutex);
-		system("clear");
-		printf("Scheduled Activities:\n");
-		displayActivities();
+    system("clear");
+    displayActivities();
 
-		time_t now = getVirtualTime();
-		char currentTime[6];
-		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
-		printf("\nCurrent time: %s\n", currentTime);
-        pthread_cond_signal(&canPrintCond);
-		pthread_mutex_unlock(&printMutex);
+
+	while(1){
+        time_t now = getVirtualTime();
+        char currentTime[6];
+        strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
+        //printf("\nCurrent time: %s\n", currentTime);
+		pthread_mutex_lock(&printMutex);
+
+
 
         for (int i = 0; i < activityCount; i++) {
             int startTimeInMinutes, endTimeInMinutes, currentTimeInMinutes;
@@ -124,19 +123,22 @@ void* displayActivitiesLoop(void* arg) {
                                 &startTimeInMinutes, &endTimeInMinutes, &currentTimeInMinutes);
 
             if (strcmp(activities[i].startTime, currentTime) == 0 && activities[i].done == 0) {
+                printf("\nCurrent time: %s\n", currentTime);
                 printf("Activity just started: %s\n", activities[i].description);
                 break;
             }
             else if (endTimeInMinutes - currentTimeInMinutes == 10 && activities[i].done == 0) {
+                printf("\nCurrent time: %s\n", currentTime);
                 printf("Activity '%s' is about to end in 10 minutes.\n", activities[i].description);
                 break;
             }   
-            else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
+            /*else if (currentTimeInMinutes > startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes && activities[i].done == 0) {
                 printf("Activity '%s' is currently running.\n", activities[i].description);
                 break;
-            }
+            }*/
         }
-
+                pthread_cond_signal(&canPrintCond);
+		pthread_mutex_unlock(&printMutex);
 		sleep(1);
 	}
 
@@ -151,7 +153,7 @@ void* userInputLoop(void* arg) {
 
         pthread_mutex_lock(&printMutex);
         pthread_cond_wait(&canPrintCond, &printMutex);
-
+        
 		// Wait for the signal from displayActivitiesLoop
         //printf("Enter time (HH:MM), 'now' or 'exit' to quit: ");
 		//printf("\033[14;1H");
@@ -162,10 +164,13 @@ void* userInputLoop(void* arg) {
                 if (strcmp(time, "exit") == 0) {
                     exit(EXIT_SUCCESS);
                 } else if (strcmp(time, "now") == 0) {
+                    system("clear");
+                    displayActivities();
                     // Use getVirtualTime to get the current time
                     time_t now = getVirtualTime();
                     // Format the virtual current time in "HH:MM" format
                     strftime(time, sizeof(time), "%H:%M", localtime(&now));
+                    printf("\nCurrent time: %s\n", time);
                     
                 }
                 // Use queryActivity to find the activity index
@@ -192,6 +197,8 @@ void* userInputLoop(void* arg) {
                                     gotResponse = 1; // Mark that we got a response
                                     if (strcmp(response, "yes") == 0) {
                                         markActivityDone(time);
+                                        system("clear");
+                                        displayActivities();
                                         break; // Exit the loop once the activity is marked as done
                                     } else if (strcmp(response, "no") == 0) {
                                         break; // Exit the loop if the user explicitly says "no"
@@ -204,7 +211,7 @@ void* userInputLoop(void* arg) {
                                 attempts++;
                                 if (attempts < maxAttempts) {
                                     printf("\nWaiting for response... Attempt %d of %d\n", attempts, maxAttempts);
-                                    //sleep(3); // Wait for 3 seconds before asking again
+                                   
                                 }
                             }
                         }
