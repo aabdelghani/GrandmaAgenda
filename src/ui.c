@@ -57,7 +57,7 @@ void startUserInteractionLoop() {
     char command[7];
     int speed;
     system("clear");
-    printf("Welcome to GrandmaScheduler!\n");
+    printf("Welcome to GrandmaScheduler! V1.3.0\n");
     printf("Please start by adding activities.\n");
 
     while (1) {
