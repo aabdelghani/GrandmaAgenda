@@ -16,6 +16,22 @@ pthread_mutex_t inputModeMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t printMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t canPrintCond = PTHREAD_COND_INITIALIZER;
 
+
+// Function to check if input is available on stdin within a timeout period
+int inputAvailable() {
+    struct timeval tv;
+    fd_set readfds;
+
+    tv.tv_sec = 3; // 3 seconds timeout
+    tv.tv_usec = 0; // 0 microseconds
+
+    FD_ZERO(&readfds);
+    FD_SET(STDIN_FILENO, &readfds);
+
+    // Check if input is available
+    return select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv) > 0;
+}
+
 void moveCursorToPosition(int line, int column) {
     printf("\033[%d;%dH", line, column);
     fflush(stdout); // Ensure the command is processed by the terminal immediately
@@ -137,64 +153,73 @@ void* displayActivitiesLoop(void* arg) {
 }
 
 
-/*
-
-*/
 void* userInputLoop(void* arg) {
     while (1) {
         char time[6], response[256];
+        int attempts = 0, maxAttempts = 5; // ask the user 5 times to enter yes/no
 
         pthread_mutex_lock(&printMutex);
         pthread_cond_wait(&canPrintCond, &printMutex);
 
 		// Wait for the signal from displayActivitiesLoop
-        printf("Enter time (HH:MM), 'now' or 'exit' to quit: ");
+        //printf("Enter time (HH:MM), 'now' or 'exit' to quit: ");
 		//printf("\033[14;1H");
 		fflush(stdout);
-		pthread_mutex_unlock(&printMutex);
 
-        
-        if (scanf("%5s", time) > 0) {
-            pthread_mutex_lock(&inputModeMutex);
-            if (strcmp(time, "exit") == 0) {
-                //pthread_mutex_unlock(&inputModeMutex);
-                exit(EXIT_SUCCESS);
-            } /*else if(strcmp(time, "now") == 0){
+        if(inputAvailable()){
+            if (scanf("%5s", time) > 0) {
+                if (strcmp(time, "exit") == 0) {
+                    exit(EXIT_SUCCESS);
+                }
+                // Use queryActivity to find the activity index
+                int activityIndex = queryActivity(time);
+                if (activityIndex == -1) {
+                    // If no activity is found, continue to the next iteration
+                    pthread_mutex_unlock(&printMutex);
+                    continue;
+                }
 
-            }*/
-            // Use queryActivity to find the activity index
-            int activityIndex = queryActivity(time);
-            if (activityIndex == -1) {
-                // If no activity is found, continue to the next iteration
-                pthread_mutex_unlock(&inputModeMutex);
-                continue;
-            }
+                int activityStatus = checkActivityStatus(activityIndex);
 
-            int activityStatus = checkActivityStatus(activityIndex);
+                    if (activityStatus) {
+                        printf("Chill, you already have %s.\n", activities[activityIndex].description);
+                    } else {
+                        // New loop with timeout for "Are you doing it?" question
+                        int gotResponse = 0;
+                        while (!gotResponse && attempts < maxAttempts) {
+                            printf("Are you doing it? (yes/no): ");
+                            fflush(stdout);
 
-            if (activityStatus) {
-                printf("Chill, you already have %s.\n", activities[activityIndex].description);
-            } else {
-                // Ask if the user is doing it until they say "yes" or "no"
-                do {
-                    printf("Are you doing it? (yes/no): ");
-                    fflush(stdout);
-                    scanf("%255s", response);
-                    fflush(stdout);
-                    if (strcmp(response, "yes") == 0) {
-                        markActivityDone(time);
-                        break; // Exit the loop once the activity is marked as done
+                            if (inputAvailable()) { // Check for input with timeout
+                                if (scanf("%255s", response) > 0) {
+                                    gotResponse = 1; // Mark that we got a response
+                                    if (strcmp(response, "yes") == 0) {
+                                        markActivityDone(time);
+                                        break; // Exit the loop once the activity is marked as done
+                                    } else if (strcmp(response, "no") == 0) {
+                                        break; // Exit the loop if the user explicitly says "no"
+                                    } else {
+                                        // If the response is neither "yes" nor "no", reset gotResponse to ask again
+                                        gotResponse = 0;
+                                    }
+                                }
+                            } else {
+                                attempts++;
+                                if (attempts < maxAttempts) {
+                                    printf("\nWaiting for response... Attempt %d of %d\n", attempts, maxAttempts);
+                                    sleep(3); // Wait for 3 seconds before asking again
+                                }
+                            }
+                        }
                     }
-                } while (strcmp(response, "no") != 0); // Continue asking if the response is not "no"
-
-            }
-
-            pthread_mutex_unlock(&inputModeMutex);
-            sleep(3); // Wait a bit before the next prompt, adjust as needed
+                pthread_mutex_unlock(&printMutex);
             } else {
-                pthread_mutex_unlock(&inputModeMutex); // Ensure to unlock if no input is taken
+                pthread_mutex_unlock(&printMutex);
             }
-		    sleep(3);
+        }
+        pthread_mutex_unlock(&printMutex);
+
+        sleep(3);
     }
     return NULL;
 }
