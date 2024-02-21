@@ -57,7 +57,7 @@ void startUserInteractionLoop() {
     char command[7];
     int speed;
     system("clear");
-    printf("Welcome to GrandmaScheduler!\n");
+    printf("Welcome to GrandmaScheduler! V1.2\n");
     printf("Please start by adding activities.\n");
 
     while (1) {
@@ -99,22 +99,21 @@ void startUserInteractionLoop() {
     printf("Enter the speed factor for the program: ");
     scanf("%d", &speed);
     setSpeedFactor(speed);
+
 }
 
 void* displayActivitiesLoop(void* arg) {
+    printf("Scheduled Activities:\n");
+    displayActivities();
+
+    time_t now = getVirtualTime();
+    char currentTime[6];
+    strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
+    printf("\nCurrent time: %s\n", currentTime);
 	while(1){
         
 		pthread_mutex_lock(&printMutex);
-		system("clear");
-		printf("Scheduled Activities:\n");
-		displayActivities();
-
-		time_t now = getVirtualTime();
-		char currentTime[6];
-		strftime(currentTime, sizeof(currentTime), "%H:%M", localtime(&now));
-		printf("\nCurrent time: %s\n", currentTime);
-        pthread_cond_signal(&canPrintCond);
-		pthread_mutex_unlock(&printMutex);
+		//system("clear");
 
         for (int i = 0; i < activityCount; i++) {
             int startTimeInMinutes, endTimeInMinutes, currentTimeInMinutes;
@@ -136,7 +135,8 @@ void* displayActivitiesLoop(void* arg) {
                 break;
             }
         }
-
+        pthread_cond_signal(&canPrintCond);
+		pthread_mutex_unlock(&printMutex);
 		sleep(1);
 	}
 
@@ -149,25 +149,21 @@ void* userInputLoop(void* arg) {
         char time[6], response[256];
         int attempts = 0, maxAttempts = 5; // ask the user 5 times to enter yes/no
 
+
+		fflush(stdout);
         pthread_mutex_lock(&printMutex);
         pthread_cond_wait(&canPrintCond, &printMutex);
-
-		// Wait for the signal from displayActivitiesLoop
-        //printf("Enter time (HH:MM), 'now' or 'exit' to quit: ");
-		//printf("\033[14;1H");
-		fflush(stdout);
-
         if (scanf("%5s", time) > 0) {
+
             if (strcmp(time, "exit") == 0) {
                 exit(EXIT_SUCCESS);
             } else if (strcmp(time, "now") == 0) {
-                // Use getVirtualTime to get the current time
+
                 time_t now = getVirtualTime();
                 // Format the virtual current time in "HH:MM" format
                 strftime(time, sizeof(time), "%H:%M", localtime(&now));
                 
             }
-            // Use queryActivity to find the activity index
             int activityIndex = queryActivity(time);
             if (activityIndex == -1) {
                 // If no activity is found, continue to the next iteration
