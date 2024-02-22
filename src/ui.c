@@ -91,7 +91,7 @@ void startUserInteractionLoop() {
             displayActivities();
         } else if (strcmp(command, "exit") == 0) {
             printf("Exiting GrandmaScheduler...\n");
-            break;
+            exit(1);
         }
     }
 
