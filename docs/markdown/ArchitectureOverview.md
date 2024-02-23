@@ -51,7 +51,7 @@ The system follows a **Layered Architecture** pattern, organized into distinct l
   - Notify users at the start of an activity.
   - Send reminders 10 minutes before an activity ends if it is not marked as done.
 
-### (scheduelr.c)Activity Manager
+### (time_management.c) Activity Manager
 - **Description:** Handles the internal state (done/undone) of each activity.
 - **Responsibilities:**
   - Track and update activity states based on user confirmation.
