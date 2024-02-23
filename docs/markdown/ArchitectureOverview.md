@@ -24,11 +24,7 @@ The system follows a **Layered Architecture** pattern, organized into distinct l
      - Activity Manager: Manages the states (done/undone) of activities.
      - Time Management: Allows for the manipulation of time flow within the program.
 
-4. **Data Access Layer:**
-   - Manages the storage and retrieval of activity data.
-   - **SW-C:** In-Memory Data Storage
-
-5. **Utility Layer:**
+4. **Utility Layer:**
    - Provides supporting functionalities that are used across the application.
    - **SW-Cs:**
      - Input Validation: Ensures user inputs are valid and in the correct format.
@@ -36,46 +32,41 @@ The system follows a **Layered Architecture** pattern, organized into distinct l
 
 ## Software Components (SW-Cs)
 
-### Terminal-Based User Interface
+### (ui.c) Terminal-Based User Interface
 - **Description:** Facilitates user interaction with the program, displaying prompts, and collecting user inputs.
 - **Responsibilities:**
   - Display the current or queried activity.
   - Collect and validate user inputs.
   - Interact with the Scheduler and Alert System to retrieve and display information.
 
-### Scheduler
+### (scheduler.c) Scheduler
 - **Description:** Manages the scheduling of daily activities, tracking their times and states.
 - **Responsibilities:**
   - Store and manage a list of daily activities and their scheduled times.
   - Update the state of activities based on user interactions.
 
-### Alert System
+### (alerts.c) Alert System
 - **Description:** Sends notifications and reminders related to scheduled activities.
 - **Responsibilities:**
   - Notify users at the start of an activity.
   - Send reminders 10 minutes before an activity ends if it is not marked as done.
 
-### Activity Manager
+### (scheduelr.c)Activity Manager
 - **Description:** Handles the internal state (done/undone) of each activity.
 - **Responsibilities:**
   - Track and update activity states based on user confirmation.
 
-### Time Management
+### (time_management.c) Time Management
 - **Description:** Allows the program's time flow to be adjusted for faster simulation or testing.
 - **Responsibilities:**
   - Modify the perception of time within the application to simulate different speeds.
 
-### In-Memory Data Storage
-- **Description:** Provides a temporary storage mechanism for activity schedules and states.
-- **Responsibilities:**
-  - Store activity details and states during the application's runtime.
-
-### Input Validation
+### (utils.c)Input Validation
 - **Description:** Ensures all user inputs meet the expected format and criteria.
 - **Responsibilities:**
   - Validate time inputs and other user commands.
 
-### Time Conversion
+### (utils.c)Time Conversion
 - **Description:** Converts user time inputs into a standardized format for processing.
 - **Responsibilities:**
   - Ensure that time inputs are correctly interpreted by the Scheduler and Alert System.
